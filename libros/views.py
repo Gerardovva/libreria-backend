@@ -8,6 +8,12 @@ import jwt
 import datetime
 from rest_framework.permissions import IsAuthenticated
 
+from rest_framework import viewsets
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from .models import Libro, Autor, Categoria, Editorial
+from .serializers import LibroSerializer, AutorSerializer, CategoriaSerializer, EditorialSerializer
+
 
 class RegisterView(APIView):
     """
@@ -136,10 +142,47 @@ class LogoutView(APIView):
         return response
     
     
-    
-    
 
+
+
+# ViewSet para libros
 class LibroViewSet(viewsets.ModelViewSet):
     queryset = Libro.objects.all()
     serializer_class = LibroSerializer
-   # permission_classes = [IsAuthenticated]  # Solo usuarios autenticados
+    # permission_classes = [IsAuthenticated]  # Solo usuarios autenticados
+
+    # Filtro personalizado para obtener libros por autor
+    @action(detail=False, methods=['get'], url_path='por-autor/(?P<autor_id>[^/.]+)')
+    def por_autor(self, request, autor_id=None):
+        libros = Libro.objects.filter(autor__id=autor_id)
+        serializer = self.get_serializer(libros, many=True)
+        return Response(serializer.data)
+
+    # Filtro personalizado para obtener libros por categoría
+    @action(detail=False, methods=['get'], url_path='por-categoria/(?P<categoria_id>[^/.]+)')
+    def por_categoria(self, request, categoria_id=None):
+        libros = Libro.objects.filter(categorias__id=categoria_id)
+        serializer = self.get_serializer(libros, many=True)
+        return Response(serializer.data)
+
+    # Filtro personalizado para obtener libros por editorial
+    @action(detail=False, methods=['get'], url_path='por-editorial/(?P<editorial_id>[^/.]+)')
+    def por_editorial(self, request, editorial_id=None):
+        libros = Libro.objects.filter(editorial__id=editorial_id)
+        serializer = self.get_serializer(libros, many=True)
+        return Response(serializer.data)
+
+# ViewSet para autores
+class AutorViewSet(viewsets.ModelViewSet):
+    queryset = Autor.objects.all()
+    serializer_class = AutorSerializer
+
+# ViewSet para categorías
+class CategoriaViewSet(viewsets.ModelViewSet):
+    queryset = Categoria.objects.all()
+    serializer_class = CategoriaSerializer
+
+# ViewSet para editoriales
+class EditorialViewSet(viewsets.ModelViewSet):
+    queryset = Editorial.objects.all()
+    serializer_class = EditorialSerializer

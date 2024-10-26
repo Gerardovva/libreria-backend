@@ -40,7 +40,47 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 
+from rest_framework import serializers
+from .models import Libro, Autor, Categoria, Editorial
+
+class AutorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Autor
+        fields = ['id', 'nombre', 'fecha_nacimiento', 'nacionalidad']
+
+class EditorialSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Editorial
+        fields = ['id', 'nombre', 'direccion', 'contacto']
+
+class CategoriaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Categoria
+        fields = ['id', 'nombre']
+
 class LibroSerializer(serializers.ModelSerializer):
+    autor = AutorSerializer()  # Nested serializer for related author
+    editorial = EditorialSerializer()  # Nested serializer for related editorial
+    categorias = CategoriaSerializer(many=True)  # Nested serializer for many-to-many categories
+
     class Meta:
         model = Libro
-        fields = ['id', 'titulo', 'imagen', 'descripcion']
+        fields = ['id', 'titulo', 'descripcion', 'imagen', 'autor', 'editorial', 'categorias', 'fecha_publicacion']
+        
+        
+        def validate_autor(self, value):
+            if not value:
+                raise serializers.ValidationError("Este campo es obligatorio.")
+            return value
+        
+        
+        def validate_editorial(self, value):
+            if not value:
+                raise serializers.ValidationError("Este campo es obligatorio.")
+            return value
+                
+        
+        
+        
+        
+        
