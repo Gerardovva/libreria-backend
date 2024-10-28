@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import User,Libro
+from .models import Autor, Categoria, Editorial, User,Libro
+from .models import Libro, Autor, Editorial, Categoria
 
 class UserSerializer(serializers.ModelSerializer):
     """
@@ -40,8 +41,6 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 
-from rest_framework import serializers
-from .models import Libro, Autor, Categoria, Editorial
 
 class AutorSerializer(serializers.ModelSerializer):
     class Meta:
@@ -58,29 +57,46 @@ class CategoriaSerializer(serializers.ModelSerializer):
         model = Categoria
         fields = ['id', 'nombre']
 
+
+
 class LibroSerializer(serializers.ModelSerializer):
-    autor = AutorSerializer()  # Nested serializer for related author
-    editorial = EditorialSerializer()  # Nested serializer for related editorial
-    categorias = CategoriaSerializer(many=True)  # Nested serializer for many-to-many categories
+    autor = serializers.PrimaryKeyRelatedField(queryset=Autor.objects.all())
+    editorial = serializers.PrimaryKeyRelatedField(queryset=Editorial.objects.all())
+    categorias = serializers.PrimaryKeyRelatedField(queryset=Categoria.objects.all(), many=True)
 
     class Meta:
         model = Libro
         fields = ['id', 'titulo', 'descripcion', 'imagen', 'autor', 'editorial', 'categorias', 'fecha_publicacion']
-        
-        
-        def validate_autor(self, value):
-            if not value:
-                raise serializers.ValidationError("Este campo es obligatorio.")
-            return value
-        
-        
-        def validate_editorial(self, value):
-            if not value:
-                raise serializers.ValidationError("Este campo es obligatorio.")
-            return value
-                
-        
-        
-        
-        
+
+    def validate_autor(self, value):
+        if value is None:
+            raise serializers.ValidationError("El autor es obligatorio.")
+        return value
+
+    def validate_editorial(self, value):
+        if value is None:
+            raise serializers.ValidationError("La editorial es obligatoria.")
+        return value
+
+    def create(self, validated_data):
+        # If categorias is included in the validated data, pop it
+        categorias = validated_data.pop('categorias', None)
+        libro = Libro.objects.create(**validated_data)
+        if categorias:
+            libro.categorias.set(categorias)  # Set many-to-many relationships
+        return libro
+
+    def update(self, instance, validated_data):
+        categorias = validated_data.pop('categorias', None)
+        instance.titulo = validated_data.get('titulo', instance.titulo)
+        instance.descripcion = validated_data.get('descripcion', instance.descripcion)
+        instance.imagen = validated_data.get('imagen', instance.imagen)
+        instance.autor = validated_data.get('autor', instance.autor)
+        instance.editorial = validated_data.get('editorial', instance.editorial)
+        instance.fecha_publicacion = validated_data.get('fecha_publicacion', instance.fecha_publicacion)
+        instance.save()
+        if categorias is not None:
+            instance.categorias.set(categorias)  # Update many-to-many relationships
+        return instance
+   
         

@@ -63,16 +63,15 @@ class Libro(models.Model):
     titulo = models.CharField(max_length=100, verbose_name='Título')
     imagen = models.ImageField(upload_to='imagenes/', verbose_name='Imagen', null=True)
     descripcion = models.TextField(verbose_name='Descripcion', null=True)
-    autor = models.ForeignKey(Autor, on_delete=models.CASCADE, related_name="libros")  # Relación "uno a muchos" con Autor
-    editorial = models.OneToOneField(Editorial, on_delete=models.SET_NULL, null=True, blank=True)  # Relación "uno a uno" con Editorial
-    categorias = models.ManyToManyField(Categoria, related_name="libros")  # Relación "muchos a muchos" con Categoria
+    autor = models.ForeignKey(Autor, on_delete=models.CASCADE, related_name="libros")
+    editorial = models.ForeignKey(Editorial, on_delete=models.SET_NULL, null=True, blank=True)  # Corrected field name
+    categorias = models.ManyToManyField(Categoria, related_name="libros")
     fecha_publicacion = models.DateField(null=True, blank=True)
 
     def __str__(self):
         return f'Titulo: {self.titulo} - Descripcion: {self.descripcion}'
 
     def delete(self, using=None, keep_parents=False):
-        # Borra la imagen al eliminar el libro
         if self.imagen:
             self.imagen.storage.delete(self.imagen.name)
         super().delete()
