@@ -2,17 +2,12 @@ from rest_framework.views import APIView
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.exceptions import AuthenticationFailed
-from .models import Libro, User
-from .serializers import LibroSerializer, UserSerializer
+from .models import Libro, User,Autor, Categoria, Editorial
+from .serializers import LibroSerializer, AutorSerializer, CategoriaSerializer, EditorialSerializer, UserSerializer
+from rest_framework.decorators import action
 import jwt
 import datetime
-from rest_framework.permissions import IsAuthenticated
-
-from rest_framework import viewsets
-from rest_framework.decorators import action
-from rest_framework.response import Response
-from .models import Libro, Autor, Categoria, Editorial
-from .serializers import LibroSerializer, AutorSerializer, CategoriaSerializer, EditorialSerializer
+#from rest_framework.permissions import IsAuthenticated
 
 
 class RegisterView(APIView):
